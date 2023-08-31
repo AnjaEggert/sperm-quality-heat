@@ -1,0 +1,4 @@
+"0","emm.den <- emmeans(mod.den, "
+"0","               specs = pairwise ~ season | sample,"
+"0","               type = ""response"","
+"0","               adjust = ""tukey"")"

@@ -1,0 +1,215 @@
+{
+    "sources": [
+        {
+            "DOI": "10.1016/j.jtherbio.2021.102845",
+            "URL": "http://dx.doi.org/10.1016/j.jtherbio.2021.102845",
+            "author": [
+                {
+                    "family": "Srivastava",
+                    "given": "A."
+                },
+                {
+                    "family": "Yadav",
+                    "given": "P."
+                },
+                {
+                    "family": "Mahajan",
+                    "given": "A."
+                },
+                {
+                    "family": "Anand",
+                    "given": "M."
+                },
+                {
+                    "family": "Yadav",
+                    "given": "S."
+                },
+                {
+                    "family": "Madan",
+                    "given": "A. K."
+                },
+                {
+                    "family": "Yadav",
+                    "given": "B."
+                }
+            ],
+            "container-title": "Journal of Thermal Biology",
+            "id": "srivastava2021",
+            "issued": {
+                "date-parts": [
+                    [
+                        2021,
+                        2
+                    ]
+                ]
+            },
+            "language": "en",
+            "page": "102845",
+            "title": "Appropriate THI model and its threshold for goats in semi-arid regions of India",
+            "type": "article-journal",
+            "volume": "96"
+        },
+        {
+            "author": [
+                {
+                    "family": "National Research Council (U.S.)"
+                }
+            ],
+            "id": "nationalresearchcouncil(u.s.)1971",
+            "issued": {
+                "date-parts": [
+                    [
+                        1971
+                    ]
+                ]
+            },
+            "publisher": "National Academy of Sciences, Washington, DC.",
+            "title": "A guide to environmental research on animals",
+            "type": "book"
+        },
+        {
+            "DOI": "10.2527/2006.843712x",
+            "URL": "https://academic.oup.com/jas/article/84/3/712/4778579",
+            "author": [
+                {
+                    "family": "Mader",
+                    "given": "T. L."
+                },
+                {
+                    "family": "Davis",
+                    "given": "M. S."
+                },
+                {
+                    "family": "Brown-Brandl",
+                    "given": "T."
+                }
+            ],
+            "container-title": "Journal of Animal Science",
+            "id": "mader2006",
+            "issue": "3",
+            "issued": {
+                "date-parts": [
+                    [
+                        2006,
+                        4,
+                        1
+                    ]
+                ]
+            },
+            "language": "en",
+            "page": "712-719",
+            "title": "Environmental factors influencing heat stress in feedlot cattle1,2",
+            "type": "article-journal",
+            "volume": "84"
+        },
+        {
+            "author": [
+                {
+                    "family": "NRC",
+                    "given": "U. S."
+                }
+            ],
+            "id": "nrc1971",
+            "issued": {
+                "date-parts": [
+                    [
+                        1971
+                    ]
+                ]
+            },
+            "publisher": "National Academy of Sciences, Washington, DC.",
+            "title": "A guide to environmental research on animals",
+            "type": "book"
+        },
+        {
+            "DOI": "10.1016/j.theriogenology.2019.08.034",
+            "URL": "https://linkinghub.elsevier.com/retrieve/pii/S0093691X19303796",
+            "author": [
+                {
+                    "family": "Llamas Luceño",
+                    "given": "Núria"
+                },
+                {
+                    "dropping-particle": "de",
+                    "family": "Souza Ramos Angrimani",
+                    "given": "Daniel"
+                },
+                {
+                    "family": "Cássia Bicudo",
+                    "given": "Luana",
+                    "non-dropping-particle": "de"
+                },
+                {
+                    "family": "Szymańska",
+                    "given": "Katarzyna J."
+                },
+                {
+                    "family": "Van Poucke",
+                    "given": "Mario"
+                },
+                {
+                    "family": "Demeyere",
+                    "given": "Kristel"
+                },
+                {
+                    "family": "Meyer",
+                    "given": "Evelyne"
+                },
+                {
+                    "family": "Peelman",
+                    "given": "Luc"
+                },
+                {
+                    "family": "Mullaart",
+                    "given": "Erik"
+                },
+                {
+                    "family": "Broekhuijse",
+                    "given": "Marleen L. W. J."
+                },
+                {
+                    "family": "Van Soom",
+                    "given": "Ann"
+                }
+            ],
+            "container-title": "Theriogenology",
+            "id": "llamasluceño2020",
+            "issued": {
+                "date-parts": [
+                    [
+                        2020,
+                        1
+                    ]
+                ]
+            },
+            "language": "en",
+            "page": "16-25",
+            "title": "Exposing dairy bulls to high temperature-humidity index during spermatogenesis compromises subsequent embryo development in vitro",
+            "type": "article-journal",
+            "volume": "141"
+        },
+        {
+            "author": [
+                {
+                    "family": "Cohen",
+                    "given": "Jacob",
+                    "suffix": "Willem"
+                }
+            ],
+            "edition": "2. ed.",
+            "id": "cohen1988",
+            "issued": {
+                "date-parts": [
+                    [
+                        1988
+                    ]
+                ]
+            },
+            "publisher": "Erlbaum",
+            "publisher-place": "Hillsdale, NJ",
+            "title": "Statistical Power Analysis for the Behavioral Sciences",
+            "type": "book"
+        }
+    ],
+    "project_biblios": []
+}

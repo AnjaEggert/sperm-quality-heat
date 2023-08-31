@@ -1,0 +1,4 @@
+"0","dat <- dat %>% "
+"0","  mutate_at(vars(generation,"
+"0","                 id,"
+"0","                 season) , ~as.factor(.))"

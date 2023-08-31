@@ -1,0 +1,8 @@
+"0","# x axis"
+"0","xlabs.vol <- c(""F0 founder \n(summer: 355-375 days) \n(winter: 550-561 days)"","
+"0","           ""F1 offspring \n(355-375 days)"","
+"0","           ""F1 offspring \n(398-417 days)"")"
+"0",""
+"0","# prepare x-position of emmeans"
+"0","cld.vol$xpos   <- c(0.8, 1.2, 1.8, 2.2, 2.8, 3.2)"
+"0","cld.vol$xpos.l <- c(0.7, 1.25, 1.7, 2.25, 2.7, 3.25)"

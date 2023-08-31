@@ -1,0 +1,402 @@
+---
+title: "Summer heat during spermatogenesis in bulls, Fig.3"
+author: "Jens Vanselow, Claudia Wesenauer, Anja Eggert, Arpna Sharma and Frank Becker"
+date: "`r Sys.Date()`" 
+editor: visual
+code-fold: false
+toc: true
+format: html
+self-contained: true
+bibliography: references.bib
+---
+
+# Libraries
+
+```{r, libraries, warning=FALSE, message=FALSE, echo=TRUE}
+library(tidyverse)     # tidy universe
+library(lmerTest)      # linear mixed model with pvals
+library(emmeans)       # post-hoc
+library(performance)   # model performance
+library(patchwork)     # combine plots
+```
+
+```{r, my_theme, echo = FALSE}
+my_theme = theme_classic() +
+  theme(text = element_text(family = "sans"),
+        plot.title  = element_text(face = "plain", size = 10),
+        axis.title  = element_text(face = "plain", size = 10),
+        legend.text = element_text(face = "plain", size = 8),
+        axis.text  = element_text(size = 8, angle = 0, vjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+```{r, seed}
+set.seed(1989)
+```
+
+# Read data
+
+```{r, read-data}
+dat <- read_csv("../data/sperm-volume-density.csv")
+```
+
+## Adjust data types
+
+```{r, data-adjust}
+dat <- dat %>% 
+  mutate(sample = paste0(generation, "-", time)) %>%
+  mutate_at(vars(generation,
+                 id,
+                 season,
+                 time, 
+                 sample) , ~as.factor(.)) %>% 
+  mutate(date = lubridate::dmy(date))
+```
+
+# Ejaculate volume
+
+## Data viz & distribution
+
+```{r, data-viz-1}
+hist(dat$volume, breaks = 30)
+```
+
+## Linear mixed model
+
+```{r, model-contr-1}
+contr = lmerControl(optCtrl = list(maxfun = 10000000),
+                    calc.derivs = FALSE)
+```
+
+-   `(1|id/season)` gives a singular matrix problem, i.e. too complex for too few observations
+
+-   interaction `season * sample` not significant and model not different
+
+```{r, model-1}
+mod.vol <- lmerTest::lmer(volume ~ 
+                            # test predictors
+                            season * sample +
+                            # no other control predictors
+                            # random/nested factors
+                            (1|id),
+                          data    = dat,
+                          REML    = TRUE,
+                          control = contr)
+```
+
+## Model summary
+
+```{r, model-sum-1}
+summary(mod.vol)
+```
+
+```{r, model-anova-1}
+car::Anova(mod.vol, type = "II", test.statistic = "Chisq")
+car::Anova(mod.vol, type = "II", test.statistic = "F")
+```
+
+### Model performance
+
+```{r, model-perf-1, fig.height=10, fig.width=10, warning=FALSE}
+performance::check_model(mod.vol)
+```
+
+### Estimated Marginal Means
+
+-   Look at "overall" comparisons among groups and estimate main effects. Doing main effects in the presence of an interaction means we average over the levels of the other factor(s).
+
+```{r, emmeans-1}
+emmeans(mod.vol,
+        specs  = pairwise ~ season,
+        type   = "response",
+        adjust = "tukey")
+
+emmeans(mod.vol, 
+        specs  = pairwise ~ sample,
+        type   = "response",
+        adjust = "tukey")
+```
+
+-   Here we obtain the estimated marginal means (EMMs) for `season` within `sample` defining `specs = pairwise ~ season|sample`
+
+```{r, emmeans-2}
+emm.vol <- emmeans(mod.vol, 
+                   specs  = pairwise ~ season | sample,
+                   type   = "response",
+                   adjust = "tukey")
+```
+
+```{r, emmeans-3}
+emm.vol$emmeans
+
+emm.vol$contrasts
+```
+
+## Plot
+
+-   prepare letter display for plots
+
+```{r, cld-1}
+# cld = compact letter display 
+cld.vol <- multcomp::cld(emm.vol$emmeans, Letters = letters) 
+
+# remove whitespace in string in column ".group"
+cld.vol$.group <- str_replace_all(cld.vol$.group, fixed(" "), "")
+
+x <- c("summerF0-now", "winterF0-now", 
+       "summerF1-early", "winterF1-early",
+       "summerF1-later", "winterF1-later")
+
+cld.vol <- as_tibble(cld.vol) %>% 
+  mutate(uniq = paste0(season,sample)) %>% 
+  mutate(uniq =  factor(uniq, levels = x)) %>%
+  arrange(uniq)
+```
+
+```{r, cld-2}
+cld.vol
+```
+
+```{r, cld-3}
+# x axis
+xlabs.vol <- c("F0 founder \n(summer: 355-375 days) \n(winter: 550-561 days)",
+               "F1 offspring \n(355-375 days)",
+               "F1 offspring \n(398-417 days)")
+
+# prepare x-position of emmeans
+cld.vol$xpos   <- c(0.8, 1.2, 1.8, 2.2, 2.8, 3.2)
+cld.vol$xpos.l <- c(0.7, 1.25, 1.7, 2.25, 2.7, 3.25)
+```
+
+```{r, plot-vol, warning=FALSE}
+plot.vol <- dat %>%
+  ggplot() +
+  geom_point(aes(x = sample, y = volume, col = season),
+             size = 1.5,
+             position = position_jitterdodge(jitter.width = 0, 
+                                             dodge.width  = 0.4)) +
+  geom_vline(xintercept = 1.5, linetype = "dashed") +
+  scale_colour_manual(name = "",
+                    values = c("orange", "cornflowerblue"),
+                    labels = c("F0: summer or F1-S",
+                               "F0: winter or F1-W"))+
+  scale_y_continuous(lim = c(0, 7.1), breaks = seq(0, 7, 2)) +
+  scale_x_discrete(labels = xlabs.vol) +
+  geom_point(data = cld.vol, 
+             aes(x = xpos, 
+                 y = emmean),
+             col = "black", size = 1) +
+  geom_errorbar(data = cld.vol, 
+                aes(x    = xpos,
+                    ymin = emmean-SE,
+                    ymax = emmean+SE),
+                col = "black", width = 0.08, size = 0.2) +
+  geom_text(data = cld.vol, 
+            aes(x = xpos.l,
+                y = emmean,
+                label = .group, hjust = 0),
+            col = "black", size = 8/2.845276) +
+  labs(x = "",
+       y = c(expression(paste("Ejaculate volume (ml)")))) +
+  my_theme +
+  # increase symbol size in legend
+  guides(colour = guide_legend(override.aes = list(size = 8/2.845276))) 
+```
+
+# Sperm density
+
+## Data viz & distribution
+
+```{r, data-viz-2}
+hist(dat$density, breaks = 30)
+```
+
+## Linear mixed model
+
+```{r, model-contr-2}
+contr = lmerControl(optCtrl = list(maxfun = 10000000),
+                    calc.derivs = FALSE)
+```
+
+-   `(1|id/season)` gives a singular matrix problem, i.e. too complex for too few observations
+
+-   interaction `season * sample` not significant and model not different
+
+```{r, model-2}
+mod.den <- lmerTest::lmer(density ~
+                            # test predictors
+                            season * sample +
+                            # no other control predictors
+                            # random/nested factors
+                            (1|id),
+                          data    = dat,
+                          REML    = TRUE,
+                          control = contr)
+```
+
+### Model summary
+
+```{r, model-sum-2}
+summary(mod.den)
+```
+
+```{r, model-anova-2}
+car::Anova(mod.den, type = "II", test.statistic = "Chisq")
+car::Anova(mod.den, type = "II", test.statistic = "F")
+```
+
+### Model performance
+
+-   some basic checks with functions of package `performance`
+
+```{r, model-perf-2, fig.height=10, fig.width=10, warning=FALSE}
+performance::check_model(mod.den)
+```
+
+### Estimated Marginal Means
+
+```{r, emmeans-4}
+emmeans(mod.den, 
+        specs  = pairwise ~ season,
+        type   = "response",
+        adjust = "tukey")
+
+emmeans(mod.den, 
+        specs  = pairwise ~ sample,
+        type   = "response",
+        adjust = "tukey")
+```
+
+```{r, emmeans-5}
+emm.den <- emmeans(mod.den,
+                   specs  = pairwise ~ season | sample,
+                   type   = "response",
+                   adjust = "tukey")
+```
+
+```{r, emmeans-6}
+emm.den$emmeans
+
+emm.den$contrasts
+```
+
+## Plot
+
+-   prepare letter display for plots
+
+```{r, cld-4}
+# cld = compact letter display 
+cld.den <- multcomp::cld(emm.den$emmeans, Letters = letters) 
+
+# remove whitespace in string in column ".group"
+cld.den$.group <- str_replace_all(cld.den$.group, fixed(" "), "")
+
+x <- c("summerF0-now", "winterF0-now", 
+       "summerF1-early", "winterF1-early",
+       "summerF1-later", "winterF1-later")
+
+cld.den <- as_tibble(cld.den) %>% 
+  mutate(uniq = paste0(season,sample)) %>% 
+  mutate(uniq =  factor(uniq, levels = x)) %>%
+  arrange(uniq)
+```
+
+```{r, cld-5}
+cld.den
+```
+
+```{r, cld-6}
+# x axis
+xlabs.den <- c("F0 founder \n(summer: 355-375 days) \n(winter: 550-561 days)",
+               "F1 offspring \n(355-375 days)", 
+               "F1 offspring \n(398-417 days)")
+
+# prepare x-position of emmeans
+cld.den$xpos   <- c(0.8, 1.2, 1.8, 2.2, 2.8, 3.2)
+cld.den$xpos.l <- c(0.7, 1.25, 1.7, 2.25, 2.7, 3.25)
+```
+
+```{r, plot-den, warning=FALSE}
+plot.den <- dat %>% 
+  ggplot() +
+  geom_point(aes(x = sample, y = density, col = season),
+             size = 1.5,
+             position = position_jitterdodge(jitter.width = 0, 
+                                             dodge.width  = 0.4)) +
+  geom_vline(xintercept = 1.5, linetype = "dashed") +
+  scale_colour_manual(name = "",
+                      values = c("orange", "cornflowerblue"),
+                      labels = c("F0: summer or F1-S", 
+                                 "F0: winter or F1-W"))+
+  scale_y_continuous(lim = c(0, 2.15), breaks = seq(0, 2, 0.5)) +
+  scale_x_discrete(labels = xlabs.den) +
+  geom_point(data = cld.den, 
+             aes(x = xpos, 
+                 y = emmean),
+             col = "black", size = 1) +
+  geom_errorbar(data = cld.den,
+                aes(x    = xpos,
+                    ymin = emmean-SE, 
+                    ymax = emmean+SE),
+                col = "black", width = 0.08, size = 0.2) +
+  geom_text(data = cld.den, 
+            aes(x = xpos.l, 
+                y = emmean,
+                label = .group, hjust = 0),
+            col = "black", size = 8/2.845276) +
+  labs(x = "",
+       y = c(expression(paste("Sperm density (x ", 10^9, " ", ml^{-1}, ")")))) +
+  my_theme +
+  # increase symbol size in legend
+  guides(colour = guide_legend(override.aes = list(size = 8/2.845276)))
+```
+
+# Combined plot: volume and density
+
+```{r, plot-3}
+plot.vol.noaxis <- plot.vol +
+  theme(axis.title.x = element_blank(),
+        axis.text.x  = element_blank())
+
+patch.vd <- plot.vol.noaxis / plot.den +
+  plot_annotation(tag_levels = 'A', 
+                  tag_prefix = '(', 
+                  tag_suffix = ')') +
+  plot_layout(guides = 'collect') &
+  theme(plot.tag          = element_text(face = 'bold', size = 8),
+        legend.position   = 'top',
+        legend.background = element_rect(fill      = NA, 
+                                         colour    = "black",
+                                         linewidth = 0.3, 
+                                         linetype  = "solid"))
+```
+
+```{r, plot-4, fig.height=14, fig.width=10, warning=FALSE}
+patch.vd
+```
+
+# How to cite R
+
+"All analyses were performed using R Statistical Software (version 4.2.0; R Core Team 2022)".
+
+Reference: R Core Team (2022). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+```{r, cite-r}
+citation()
+version$version.string
+```
+
+```{r, cite-packages}
+citation("tidyverse")
+citation("lmerTest")
+citation("emmeans")
+citation("performance")
+citation("patchwork")
+```
+
+# Session Info
+
+```{r, session}
+sessionInfo()
+```

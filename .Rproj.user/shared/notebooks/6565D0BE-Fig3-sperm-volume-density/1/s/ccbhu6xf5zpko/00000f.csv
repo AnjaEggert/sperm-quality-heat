@@ -1,0 +1,2 @@
+"0","contr = lmerControl(optCtrl = list(maxfun = 10000000),"
+"0","                    calc.derivs = FALSE)"

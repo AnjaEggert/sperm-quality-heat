@@ -1,0 +1,274 @@
+---
+title: "Summer heat during spermatogenesis in bulls, Fig.2"
+author: "Jens Vanselow, Claudia Wesenauer, Anja Eggert, Arpna Sharma and Frank Becker"
+date: "`r Sys.Date()`" 
+editor: visual
+code-fold: false
+toc: true
+format: html
+self-contained: true
+bibliography: references.bib
+---
+
+# Libraries
+
+```{r, libraries, warning=FALSE, message=FALSE, echo=TRUE}
+library(tidyverse)   # tidy world
+```
+
+```{r, my_theme, echo = FALSE}
+my_theme = theme_classic() +
+  theme(text = element_text(family = "sans"),
+        plot.title  = element_text(face = "plain", size = 10),
+        axis.title  = element_text(face = "plain", size = 10),
+        legend.text = element_text(face = "plain", size = 8),
+        axis.text  = element_text(size = 8, angle = 0, vjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+```{r, seed}
+set.seed(1989)
+```
+
+# Station weather data
+
+Weather data were obtained from the German Meteorological Service (Deutscher Wetterdienst, DWD). Open data of the DWD-station no. 7351 (17258 Feldberg/Mecklenburg, Germany) over the period from 2018-04-01 until 2019-03-31 were downloaded at the Climate Data Center ([DWD Open Data](https://opendata.dwd.de/climate_environment/CDC/observations_germany/)). Hourly data of 2 m air temperature (°C) and 2 m relative humidity (%) were used to calculate the hourly temperature humidity index (THI).
+
+## Read data
+
+```{r, read-data, echo=TRUE, message=FALSE, warning=FALSE}
+dwd_t2m <- read.csv2("../data/air-temperature-station.csv",
+                          dec = ".", sep = ",", encoding = "UTF-8", row.names = NULL,
+                          colClasses = c(Produkt_Code = "character", Zeitstempel = "character"))
+
+dwd_rf  <- read.csv2("../data/rel-humidity-station.csv",
+                          dec = ".", sep = ",", encoding = "UTF-8", row.names = NULL,
+                          colClasses = c(Produkt_Code = "character", Zeitstempel = "character"))
+```
+
+## Adjust data types
+
+As data were downloaded from German Meteorological Service (Deutscher Wetterdienst, DWD), column labels are in German.
+
+```{r, data-t2m}
+dwd_t2m <- tibble(dwd_t2m) %>% 
+  select(2, 3, 4) %>% 
+  rename(t2m = Zeitstempel,
+         time = SDO_ID,
+         SDO_ID = Produkt_Code) %>% 
+  mutate(t2m = as.numeric(t2m)) %>% 
+  mutate(SDO_ID = as.numeric(SDO_ID)) %>%
+  mutate(time = as.POSIXct(time, format = "%Y-%m-%dT%H:%M:%S")) %>% 
+  drop_na(time) # for some reason there are 3 rows per station with NA in time
+```
+
+```{r, data-rf}
+dwd_rf <- tibble(dwd_rf) %>% 
+  select(2, 3, 4) %>% 
+  rename(rf = Zeitstempel,
+         time = SDO_ID,
+         SDO_ID = Produkt_Code) %>% 
+  mutate(rf = as.numeric(rf)) %>% 
+  mutate(SDO_ID = as.numeric(SDO_ID)) %>% 
+  mutate(time = as.POSIXct(time, format = "%Y-%m-%dT%H:%M:%S")) %>% 
+  drop_na(time) # for some reason there are 3 rows per station with NA in time
+```
+
+```{r, data-merge}
+dwd.data <- merge(dwd_t2m, dwd_rf)
+dwd.data <- tibble(dwd.data) %>% 
+  mutate(date = as.Date(time))
+```
+
+# Calculating THI index
+
+There are many different definitions of THI, an overview is given by @srivastava2021
+
+THI index of @nrc1971 is defined as:
+
+$$THI = (1.8 \cdot T + 32) - (0.55-0.0055 \cdot RH)\cdot(1.8 \cdot T - 26)$$
+
+THI index of @mader2006 is defined as:
+
+$$THI=0.8 \cdot T+\frac{RH}{100} \cdot(T-14.4)+46.4$$
+
+$T$ is air temperature and given in $^{\circ} C$ and $RH$ as percentage.
+
+Calculating THI according to @nrc1971 and @mader2006:
+
+```{r, thi-calc, echo=TRUE, message=FALSE, warning=FALSE}
+dwd.data <- dwd.data %>% 
+  mutate(thi.nrc = (1.8*t2m + 32) - (0.55 - 0.0055*rf)*(1.8*t2m - 26),
+         thi.mad = (0.8*t2m + (rf/100)*(t2m-14.4) + 46.4))
+```
+
+-   DWD und THI: [DWD-Webseite](https://www.dwd.de/DE/fachnutzer/landwirtschaft/dokumentationen/isabel/deutschland_hitzestress_bei_rinder_doku.html):
+
+| THI_min | THI_max | Category             |
+|---------|---------|----------------------|
+|         | ≤ 68    | no heat stress       |
+| \>68    | ≤ 72    | mild heat stress     |
+| \>72    | ≤ 80    | moderate heat stress |
+| \>80    | ≤ 90    | strong heat stress   |
+| \>90    |         | extreme heat stress  |
+
+
+# Plot
+
+```{r, select-period}
+dwd.data <- dwd.data %>% 
+  filter(time >= ymd_hms("2018-03-31 23:00:00")) %>%
+  filter(time <= ymd_hms("2019-04-01 00:00:00"))
+```
+
+```{r, english}
+# english axis label
+Sys.setlocale("LC_ALL", "English")
+```
+
+```{r, plot-1}
+plot.thi <- dwd.data %>%
+  ggplot() +
+  # bull 1:  14.06.2018 until 13.08.2018
+  # bull 1:  28.12.2018 until 26.02.2019
+  annotate(geom = "rect", 
+           xmin = ymd_hms("2018-06-14 00:00:00"),
+           xmax = ymd_hms("2018-08-13 23:00:00"), 
+           ymin = 4, ymax = 85,
+           fill = "grey60", colour = NA, alpha = 0.2) +
+  geom_segment(aes(x    = ymd_hms("2018-08-13 23:00:00"), 
+                   xend = ymd_hms("2018-08-13 23:00:00"), 
+                   y = 4, yend = 85), 
+               linetype = "dashed", linewidth = 0.4) +
+  annotate(geom  = "text",
+           x     = ymd_hms("2018-08-13 23:00:00"),
+           y     = 4, 
+           label = "bull 1", 
+           size = 8/2.845276, angle = 90, hjust = -0.4, vjust = -0.5) +
+  annotate(geom = "rect", 
+           xmin = ymd_hms("2018-12-28 00:00:00"),
+           xmax = ymd_hms("2019-02-26 23:00:00"), 
+           ymin = 4, ymax = 85,
+           fill = "grey60", colour = NA, alpha = 0.2) +
+  geom_segment(aes(x    = ymd_hms("2019-02-26 23:00:00"), 
+                   xend = ymd_hms("2019-02-26 23:00:00"), 
+                   y = 4, yend = 85), 
+               linetype = "dashed", linewidth = 0.4) +
+  annotate(geom  = "text",
+           x     = ymd_hms("2019-02-26 23:00:00"),
+           y     = 4, 
+           label = "bull 1", 
+           size = 8/2.845276, angle = 90, hjust = -0.4, vjust = -0.5) +
+  # bull 2:  31.05.2018 until 30.07.2018
+  # bull 2:  16.12.2018 until 14.02.2019
+  annotate(geom = "rect", 
+           xmin = ymd_hms("2018-05-31 00:00:00"),
+           xmax = ymd_hms("2018-07-30 23:00:00"), 
+           ymin = 3, ymax = 84,
+           fill = "grey60", colour = NA, alpha = 0.2) +
+  geom_segment(aes(x    = ymd_hms("2018-07-30 23:00:00"), 
+                   xend = ymd_hms("2018-07-30 23:00:00"), 
+                   y = 3, yend = 84),
+               linetype = "dashed", linewidth = 0.4) +
+  annotate(geom  = "text",
+           x     = ymd_hms("2018-07-30 23:00:00"),
+           y     = 3, 
+           label = "bull 2", 
+           size = 8/2.845276, angle = 90, hjust = -0.4, vjust = -0.5) +
+  annotate(geom = "rect", 
+           xmin = ymd_hms("2018-12-16 00:00:00"),
+           xmax = ymd_hms("2019-02-14 23:00:00"), 
+           ymin = 3, ymax = 84,
+           fill = "grey60", colour = NA, alpha = 0.2) +
+  geom_segment(aes(x    = ymd_hms("2019-02-14 23:00:00"), 
+                   xend = ymd_hms("2019-02-14 23:00:00"), 
+                   y = 3, yend = 84),
+               linetype = "dashed", linewidth = 0.4) +
+  annotate(geom  = "text",
+           x     = ymd_hms("2019-02-14 23:00:00"),
+           y     = 3, 
+           label = "bull 2", 
+           size = 8/2.845276, angle = 90, hjust = -0.4, vjust = -0.5) +
+  # bull 3:  17.05.2018 until 16.07.2018
+  # bull 3:  08.11.2018 until 07.01.2019
+  annotate(geom = "rect", 
+           xmin = ymd_hms("2018-05-17 00:00:00"),
+           xmax = ymd_hms("2018-07-16 23:00:00"), 
+           ymin = 2, ymax = 83,
+           fill = "grey60", colour = NA, alpha = 0.2) +
+  geom_segment(aes(x    = ymd_hms("2018-07-16 23:00:00"), 
+                   xend = ymd_hms("2018-07-16 23:00:00"), 
+                   y = 2, yend = 83),
+               linetype = "dashed", linewidth = 0.4) +
+  annotate(geom  = "text",
+           x     = ymd_hms("2018-07-16 23:00:00"),
+           y     = 2, 
+           label = "bull 3", 
+           size = 8/2.845276, angle = 90, hjust = -0.4, vjust = -0.5) +
+  annotate(geom = "rect", 
+           xmin = ymd_hms("2018-11-08 00:00:00"),
+           xmax = ymd_hms("2019-01-07 23:00:00"), 
+           ymin = 2, ymax = 83,
+           fill = "grey60", colour = NA, alpha = 0.2) +
+  geom_segment(aes(x    = ymd_hms("2019-01-07 23:00:00"), 
+                   xend = ymd_hms("2019-01-07 23:00:00"), 
+                   y = 2, yend = 83),
+               linetype = "dashed", linewidth = 0.4) +
+  annotate(geom  = "text",
+           x     = ymd_hms("2019-01-07 23:00:00"),
+           y     = 2, 
+           label = "bull 3", 
+           size = 8/2.845276, angle = 90, hjust = -0.4, vjust = -0.5) +
+  # add the THI data
+  geom_line(aes(x = time, y = thi.mad),
+            linewidth = 0.2, col = "firebrick") +
+  # add THI = 72 horizontal line
+  geom_hline(yintercept = 72, linetype = "solid", linewidth = 0.4, col = "black") +
+  # define axes
+  scale_x_datetime(limits        = ymd_hms(c("2018-04-01 00:00:00", "2019-03-28 00:00:00")),
+               date_breaks       = "1 month", 
+               date_minor_breaks = "1 week",
+               date_labels       = "%b",
+               expand            = c(0.01, 0.01)) +
+  scale_y_continuous(limits = c(0, 85), 
+                     breaks = seq(0,85,10),
+                     expand = c(0.02,0.02)) +
+  # labs
+  labs(x = "\n2018/2019",
+       y = "Temperature Humidity Index, THI\n") +
+  # theme
+  my_theme +
+  theme(axis.text.x = element_text(hjust = -0.3))
+```
+
+```{r, plot-2, echo=FALSE, message=FALSE, warning=FALSE, fig.width=18, fig.height=13}
+plot.thi
+```
+
+```{r, plot-save, eval = FALSE}
+png("./fig/Fig2-heat-thi.png",
+    width = 165, height = 100, units = "mm",
+    pointsize = 10, res = 600)
+
+plot.thi
+
+dev.off()
+```
+
+# How to cite R
+
+"All analyses were performed using R Statistical Software (version 4.2.0; R Core Team 2022)".
+
+Reference: R Core Team (2022). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+```{r}
+citation()
+version$version.string
+```
+
+# Session Info
+
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,8 @@
+"0","my_theme = theme_classic() +"
+"0","  theme(text = element_text(family = ""sans""),"
+"0","        plot.title  = element_text(face = ""plain"", size = 10),"
+"0","        axis.title  = element_text(face = ""plain"", size = 10),"
+"0","        legend.text = element_text(face = ""plain"", size = 7),"
+"0","        axis.text  = element_text(size = 8, angle = 0, vjust = 0.5),"
+"0","        panel.grid.major = element_blank(),"
+"0","        panel.grid.minor = element_blank())"

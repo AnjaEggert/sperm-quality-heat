@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Vanselow
+    given-names: Jens
+    orcid: https://orcid.org/0000-0001-7374-4615
+  - family-names: Wesenauer
+    given-names: Claudia
+    orcid: none
+  - family-names: Eggert
+    given-names: Anja
+    orcid: https://orcid.org/0000-0003-3893-6851
+  - family-names: Sharma
+    given-names: Arpna
+    orcid: https://orcid.org/0000-0002-9813-1716
+  - family-names: Becker
+    given-names: Frank
+    orcid: https://orcid.org/0000-0001-9832-3091
+
+title: "sperm-quality-heat"
+version: 1.0
+date-released: 2023-08-31
+license: cc-by-4.0
+repository-code: "https://github.com/AnjaEggert/sperm-quality-heat"

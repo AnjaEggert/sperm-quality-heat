@@ -26,7 +26,7 @@ We run the data and statistical analysis on Windows 10.
     + `sperm-volume-density.csv`
     + `sperm-motility.csv`
     +  `blastocyst-rates.csv`
-  * Folder *code* with corresponding 5 Quarto-Markdown and rendered HTML files and a bibliography file:
+  * Folder *code* with corresponding 4 Quarto-Markdown and rendered HTML files and a bibliography file:
     + `Fig2-heat-thi.qmd`
     + `Fig3-sperm-volume-density.qmd`
     + `Fig4-sperm-motility.qmd`
